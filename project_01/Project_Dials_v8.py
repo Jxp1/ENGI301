@@ -302,16 +302,16 @@ def taskSMS(): # SMS + Keypad Lock
     # Your Account Sid and Auth Token from twilio.com/console
     # DANGER! This is insecure. See http://twil.io/secure
     # CENSORED FOR HACKSTER.IO
-    account_sid = 'AC9ee7da8f0119f385717a65f7993ccdd0'
-    auth_token = 'd9391c34be3cab9764097c98f2bf7957'
+    account_sid = 'xxxxxxxxxxxxxxxxxxxxxx'
+    auth_token = 'xxxxxxxxxxxxxxxxxxxxxxx'
     client = Client(account_sid, auth_token)
     
     # NUMBERS CENSORED FOR HACKSTER.IO
     message = client.messages \
         .create(
              body="Your randomly generated keypad code is: {1} \n \n (Keypad code generated {2})".format("string", KeypadCode, dt_string),
-             from_='+13345106814',
-             to='+16147262498'
+             from_='+xxxxxxxxxx',
+             to='+xxxxxxxxxx'
          )
          
     if (debug):
