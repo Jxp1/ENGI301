@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 --------------------------------------------------------------------------
-Give an output when dials are turned corectly
+Create a 3 layer security system with various password locks
 --------------------------------------------------------------------------
 License:   
 Copyright 2019 - John Perez
@@ -31,18 +31,17 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------
-Control something using 3 potentiometers
 
-  - Potentiometer connected to AIN0 (P1_19)
-  - Potentiometer connected to AIN1 (P1_21)
-  - Potentiometer connected to AIN2 (P1_23)
-  
-  - Light Connected to GPIO26 (P1_36)
+Code Structure
+- Import Libraries
+- Define inputs and outputs
+- Define global variables
+- 3-Dial password lock function
+- Pattern lock function
+- SMS + Keypad lock function
+- Main Script
 
 --------------------------------------------------------------------------
-Background:
-  - https://adafruit-beaglebone-io-python.readthedocs.io/en/latest/ADC.html
-  - https://learn.adafruit.com/controlling-a-servo-with-a-beaglebone-black/writing-a-program
 
 """
 import time
@@ -50,7 +49,7 @@ import time
 import Adafruit_BBIO.ADC as ADC
 import Adafruit_BBIO.GPIO as GPIO
 
-# Download the helper library from https://www.twilio.com/docs/python/install
+# Download the twilio helper library from https://www.twilio.com/docs/python/install
 from twilio.rest import Client
 
 # Import random to generate random number code
@@ -177,14 +176,16 @@ def setup():
     GPIO.setup(SMS_CORRECT_OUTPUT, GPIO.OUT)
     GPIO.setup(SMS_INCORRECT_OUTPUT, GPIO.OUT)
     
-def taskDial():
+def taskDial(): # Dial Password Lock
+    
     
     global DIAL_CORRECT_VALUE 
     DIAL_CORRECT_VALUE = 0
     
     while(GPIO.input(BUTTON0) == 1):
         pass
-          
+      
+    # Gets angle from potentiometers      
     angle1 = float(ADC.read(ANALOG_INPUT1))
     angle2 = float(ADC.read(ANALOG_INPUT2))
     angle3 = float(ADC.read(ANALOG_INPUT3))      
@@ -209,7 +210,7 @@ def taskDial():
     while(GPIO.input(BUTTON0) == 0):
         pass
 
-def taskButton():
+def taskButton(): # Pattern Button Password Lock
 
     global PATTERN_CORRECT_VALUE 
     PATTERN_CORRECT_VALUE = 0; 
@@ -221,6 +222,8 @@ def taskButton():
         print(GPIO.input(PATTERN_BUTTON2))
         print(GPIO.input(PATTERN_BUTTON3))
     
+    # The current password (1, 2, 1, 1) is currently hardcoded
+    # Checks if correct button is pressed then moves on in script
     while(GPIO.input(PATTERN_BUTTON1) == 1 and GPIO.input(PATTERN_BUTTON2) == 1 and GPIO.input(PATTERN_BUTTON3) == 1):
         pass
     
@@ -277,11 +280,12 @@ def taskButton():
     while(GPIO.input(BUTTON0) == 0):
         pass
    
-def taskSMS():
+def taskSMS(): # SMS + Keypad Lock
     
     global SMS_CORRECT_VALUE
     SMS_CORRECT_VALUE = 0
     
+    # Create random code
     KeypadCode = randint(10000, 99999)
     
     SMS_Button_Array = [SMS_BUTTON_0, SMS_BUTTON_1, SMS_BUTTON_2, SMS_BUTTON_3, SMS_BUTTON_4, SMS_BUTTON_5, SMS_BUTTON_6, SMS_BUTTON_7, SMS_BUTTON_8, SMS_BUTTON_9]
@@ -297,10 +301,12 @@ def taskSMS():
             
     # Your Account Sid and Auth Token from twilio.com/console
     # DANGER! This is insecure. See http://twil.io/secure
+    # CENSORED FOR HACKSTER.IO
     account_sid = 'AC9ee7da8f0119f385717a65f7993ccdd0'
     auth_token = 'd9391c34be3cab9764097c98f2bf7957'
     client = Client(account_sid, auth_token)
     
+    # NUMBERS CENSORED FOR HACKSTER.IO
     message = client.messages \
         .create(
              body="Your randomly generated keypad code is: {1} \n \n (Keypad code generated {2})".format("string", KeypadCode, dt_string),
@@ -311,6 +317,8 @@ def taskSMS():
     if (debug):
         print(message.body)
    
+    # In similar fashion to pattern, check to see if 1st button is pressed corrected then moved on
+    # Code is formatted to handle any 5-digit password generated
     while (SMS_CORRECT_VALUE == 0):
         
         while(GPIO.input(SMS_BUTTON_0) == 0 and GPIO.input(SMS_BUTTON_1) == 0 and GPIO.input(SMS_BUTTON_2) == 0 and GPIO.input(SMS_BUTTON_3) == 0 and GPIO.input(SMS_BUTTON_4) == 0 and GPIO.input(SMS_BUTTON_5) == 0 and GPIO.input(SMS_BUTTON_6) == 0 and GPIO.input(SMS_BUTTON_7) == 0 and GPIO.input(SMS_BUTTON_8) == 0 and GPIO.input(SMS_BUTTON_9) == 0):
@@ -383,6 +391,8 @@ if __name__ == '__main__':
     
     setup()
     
+    # Runs through 3-layer protocol
+    # Note that these have to be done in order! This adds to the secure aspect of the system
     print("Begin safe security protocol")
 
     while (DIAL_CORRECT_VALUE == 0):
